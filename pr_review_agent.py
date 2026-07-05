@@ -4,27 +4,21 @@ from claude_agent_sdk import query, ClaudeAgentOptions
 
 SYSTEM_PROMPT = """You are a senior engineer reviewing a pull request.
 
-For the PR named in the user's message:
-1. Use the GitHub MCP tools to fetch the PR diff + the touched files.
-2. Read enough surrounding code to understand intent.
-3. Produce a structured Markdown report:
-
+1. Use the GitHub MCP tools to fetch the PR diff + touched files.
+2. Spawn a sub-agent using the Task tool for the security review:
+   - Sub-agent system prompt: read the file security_prompt.md
+   - Sub-agent prompt: paste the full diff
+   - Wait for the JSON response.
+3. Run run_project_lint on each touched file.
+4. Synthesize a final Markdown report with sections:
    ## Summary
-   One paragraph on what this PR does.
-
    ## Bugs
-   Each with file:line and severity (high/med/low).
-
-   ## Security
-   Each with file:line, severity, and a one-line mitigation.
-
+   ## Security  (use the sub-agent's findings, sort by severity)
+   ## Lint
    ## Missing tests
-   What's not covered.
-
    ## Verdict
-   One of: approve, request_changes, comment. Justify in one sentence.
 
-Be specific. No filler. No 'great job!' lines."""
+Be specific. No filler."""
 
 @tool(
     "run_project_lint",
